@@ -12,8 +12,11 @@ import "../../../components/ha-card";
 import "../../../components/ha-icon-button";
 import "../../../components/ha-state-icon";
 import { UNAVAILABLE, UNKNOWN } from "../../../data/entity/entity";
-import type { LightEntity } from "../../../data/light";
-import { lightSupportsBrightness } from "../../../data/light";
+import {
+  computeLightAttributeService,
+  lightSupportsBrightness,
+  type LightEntity,
+} from "../../../data/light";
 import type { ActionHandlerEvent } from "../../../data/lovelace/action_handler";
 import type { HomeAssistant } from "../../../types";
 import { actionHandler } from "../common/directives/action-handler-directive";
@@ -213,10 +216,15 @@ export class HuiLightCard extends LitElement implements LovelaceCard {
   }
 
   private _setBrightness(e: any): void {
-    this.hass!.callService("light", "turn_on", {
-      entity_id: this._config!.entity,
-      brightness_pct: e.detail.value,
-    });
+    const stateObj = this.hass!.states[this._config!.entity] as LightEntity;
+    this.hass!.callService(
+      "light",
+      computeLightAttributeService(this.hass!, stateObj),
+      {
+        entity_id: stateObj.entity_id,
+        brightness_pct: e.detail.value,
+      }
+    );
   }
 
   private _computeBrightness(stateObj: LightEntity): string {
